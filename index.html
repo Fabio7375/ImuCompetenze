@@ -1,157 +1,173 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calcolatore Competenze IMU – BDZ Associati</title>
   <style>
     /* RESET & FONT */
-    * { box-sizing: border-box; margin:0; padding:0; }
+    * { box-sizing:border-box; margin:0; padding:0 }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #faf8f7;
-      color: #333;
-      line-height: 1.4;
-      padding: 20px;
+      font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background:#faf8f7; color:#333; line-height:1.4;
+      padding:20px;
     }
-    h1 { text-align:center; margin-bottom:20px; color:#6b4c57; }
+    h1 { text-align:center; margin-bottom:20px; color:#6b4c57 }
     .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: grid;
+      display:grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      gap:20px;
+      width:100%;
+      max-width:100vw;
     }
     .card {
-      background: #fff;
-      border: 1px solid #e1e5e9;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      background:#fff; border:1px solid #e1e5e9;
+      border-radius:12px; padding:20px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.05);
     }
     .card h2 {
-      font-size: 18px;
-      margin-bottom: 10px;
-      color: #6b4c57;
+      font-size:18px; margin-bottom:10px; color:#6b4c57;
     }
-    label { display:block; margin-bottom:5px; font-size:14px; color:#8b6b73; }
-    input[type="text"],
-    input[type="number"],
-    select {
-      width:100%;
-      padding:10px;
-      margin-bottom:15px;
-      border:1px solid #d1d5db;
-      border-radius:8px;
-      font-size:14px;
+    label {
+      display:block; margin-bottom:5px;
+      font-size:14px; color:#8b6b73;
+    }
+    input[type="text"], input[type="number"], select {
+      width:100%; padding:8px;
+      border:1px solid #d1d5db; border-radius:6px;
+      font-size:14px; margin-bottom:12px;
+    }
+    /* griglia interna per campi 2-colonne */
+    .form-grid {
+      display:grid;
+      grid-template-columns: repeat(2, minmax(200px, 1fr));
+      column-gap:20px; row-gap:12px;
+    }
+    /* riquadro soglie+sconti */
+    .card.sconti {
+      border:2px dashed #8b6b73;
+      background: #f9f5f5;
     }
     pre {
-      background:#f8f9fa;
-      padding:15px;
-      border-radius:8px;
-      font-family:Consolas, "Courier New", monospace;
-      font-size:13px;
-      white-space: pre-wrap;
-      border:1px solid #e9ecef;
-      margin-bottom:15px;
+      background:#f8f9fa; padding:15px;
+      border-radius:8px; font-family:Consolas,monospace;
+      font-size:13px; white-space:pre-wrap;
+      border:1px solid #e9ecef; margin-bottom:15px;
     }
     .result {
-      text-align:center;
-      padding:20px;
-      background: linear-gradient(135deg,#f7f3f3 0%,#ede5e1 100%);
-      border-radius:12px;
-      border:1px solid #e0d4d0;
+      text-align:center; padding:20px;
+      background:linear-gradient(135deg,#f7f3f3,#ede5e1);
+      border-radius:12px; border:1px solid #e0d4d0;
     }
-    .result h3 {
-      margin-bottom:10px;
-      color:#6b4c57;
-    }
+    .result h3 { margin-bottom:10px; color:#6b4c57 }
     .result .amount {
-      font-size:32px;
-      font-weight:bold;
-      margin-bottom:5px;
+      font-size:32px; font-weight:bold; margin-bottom:5px;
     }
     button {
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      margin: 0 auto;
-      padding:12px 20px;
-      font-size:16px;
-      border:none;
-      border-radius:10px;
-      background: #6b4c57;
-      color:#fff;
-      cursor:pointer;
-      transition:background .2s;
+      display:inline-block; padding:10px 20px;
+      font-size:15px; border:none; border-radius:8px;
+      background:#6b4c57; color:#fff; cursor:pointer;
+      transition:background .2s; margin-top:10px;
     }
-    button:hover { background: #563d46; }
+    button:hover { background:#563d46 }
   </style>
 </head>
 <body>
 
   <h1>Calcolatore Competenze IMU 2025</h1>
   <div class="container">
-    <!-- INGRESSO DATI -->
+
+    <!-- SINISTRA: INPUT -->
     <div class="card">
-      <h2>Dati Cliente</h2>
-      <label>Cliente:</label>
-      <input type="text" id="cliente" placeholder="Inserisci nome cliente" />
+      <h2>Dati Cliente &amp; Prezzi</h2>
+      <div class="form-grid">
+        <div>
+          <label>Cliente</label>
+          <input type="text" id="cliente" placeholder="Nome cliente"/>
+        </div>
+        <div>
+          <label>Tipo Calcolo</label>
+          <select id="tipoCalcolo">
+            <option value="acconto">Acconto (50%)</option>
+            <option value="saldo">Saldo (100%)</option>
+          </select>
+        </div>
+        <div>
+          <label>Voce Contabile</label>
+          <input type="text" id="voceContabile" value="00010"/>
+        </div>
+        <div>
+          <label>Prezzo Non C2/C6/C7 (€)</label>
+          <input type="number" id="priceNonC2" step="0.01" value="28.00"/>
+        </div>
+        <div>
+          <label>Prezzo <strong>C2/C6/C7</strong> (€)</label>
+          <input type="number" id="priceC2" step="0.01" value="17.00"/>
+        </div>
+        <div>
+          <label>Prezzo Categoria 3 (€)</label>
+          <input type="number" id="priceDal3" step="0.01" value="17.00"/>
+        </div>
+      </div>
 
-      <label>Tipo Calcolo:</label>
-      <select id="tipoCalcolo">
-        <option value="acconto">Acconto (50%)</option>
-        <option value="saldo">Saldo (100%)</option>
-      </select>
+      <h2>Numero Immobili</h2>
+      <div class="form-grid">
+        <div>
+          <label>Non C2/C6/C7 (A2, A3…)</label>
+          <input type="number" id="immNonC2" min="0" value="0"/>
+        </div>
+        <div>
+          <label><strong>C2/C6/C7 e terreni (A1…)</strong></label>
+          <input type="number" id="immC2" min="0" value="0"/>
+        </div>
+        <div>
+          <label>Categoria 3</label>
+          <input type="number" id="immDal3" min="0" value="0"/>
+        </div>
+      </div>
 
-      <label>Voce Contabile:</label>
-      <input type="text" id="voceContabile" value="00010" />
-
-      <h2>Prezzi personalizzabili</h2>
-      <label>Prezzo Immobili non <strong>C2/C6/C7</strong> (€):</label>
-      <input type="number" id="priceNonC2" min="0" step="0.01" value="28.00" />
-
-      <label>Prezzo Immobili <strong>C2/C6/C7 e terreni</strong> (€):</label>
-      <input type="number" id="priceC2" min="0" step="0.01" value="17.00" />
-
-      <label>Prezzo Dal 3° immobile (€):</label>
-      <input type="number" id="priceDal3" min="0" step="0.01" value="17.00" />
-
-      <h2>Numero Immobili per Categoria</h2>
-      <label>Immobili non <strong>C2/C6/C7</strong> (A2, A3…):</label>
-      <input type="number" id="immNonC2" min="0" value="0" />
-
-      <label><strong>Immobili C2/C6/C7 e terreni</strong> (A1…):</label>
-      <input type="number" id="immC2" min="0" value="0" />
-
-      <label>Dal 3° immobile:</label>
-      <input type="number" id="immDal3" min="0" value="0" />
-
-      <h2>Configurazione Sconti (%)</h2>
-      <label>Soglia C2/C6/C7 e terreni:</label>
-      <input type="number" id="sogC2" min="1" value="100" />
-      <label>Sconto % C2/C6/C7:</label>
-      <input type="number" id="scoC2" min="0" max="100" value="0" />
-
-      <label>Soglia non C2/C6/C7:</label>
-      <input type="number" id="sogNonC2" min="1" value="100" />
-      <label>Sconto % non C2/C6/C7:</label>
-      <input type="number" id="scoNonC2" min="0" max="100" value="0" />
-
-      <label>Soglia Dal 3° immobile:</label>
-      <input type="number" id="sogDal3" min="1" value="100" />
-      <label>Sconto % Dal 3°:</label>
-      <input type="number" id="scoDal3" min="0" max="100" value="0" />
-
-      <label>Soglia complessiva:</label>
-      <input type="number" id="sogComp" min="1" value="100" />
-      <label>Sconto % complessivo:</label>
-      <input type="number" id="scoComp" min="0" max="100" value="0" />
+      <!-- Riquadro soglie+sconti -->
+      <div class="card sconti">
+        <h2>Configurazione Sconti (%)</h2>
+        <div class="form-grid">
+          <div>
+            <label>Soglia Non C2/C6/C7</label>
+            <input type="number" id="sogNonC2" min="1" value="100"/>
+          </div>
+          <div>
+            <label>Sconto % Non C2/C6/C7</label>
+            <input type="number" id="scoNonC2" min="0" max="100" value="0"/>
+          </div>
+          <div>
+            <label>Soglia <strong>C2/C6/C7</strong></label>
+            <input type="number" id="sogC2" min="1" value="100"/>
+          </div>
+          <div>
+            <label>Sconto % <strong>C2/C6/C7</strong></label>
+            <input type="number" id="scoC2" min="0" max="100" value="0"/>
+          </div>
+          <div>
+            <label>Soglia Categoria 3</label>
+            <input type="number" id="sogDal3" min="1" value="100"/>
+          </div>
+          <div>
+            <label>Sconto % Categoria 3</label>
+            <input type="number" id="scoDal3" min="0" max="100" value="0"/>
+          </div>
+          <div>
+            <label>Soglia Complessiva</label>
+            <input type="number" id="sogComp" min="1" value="100"/>
+          </div>
+          <div>
+            <label>Sconto % Complessivo</label>
+            <input type="number" id="scoComp" min="0" max="100" value="0"/>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- RISULTATI -->
-    <div class="card">
+    <!-- DESTRA: RISULTATI -->
+    <div class="card" style="overflow-y:auto; max-height:calc(100vh - 60px);">
       <h2>Dettaglio Calcolo</h2>
       <pre id="dettaglio">Inserisci i dati per vedere il calcolo…</pre>
 
@@ -163,108 +179,83 @@
 
       <button id="btnScarica">Scarica Report</button>
     </div>
+
   </div>
 
   <script>
-    const f = {
-      cliente:        document.getElementById('cliente'),
-      tipoCalcolo:    document.getElementById('tipoCalcolo'),
-      voceContabile:  document.getElementById('voceContabile'),
-      priceC2:        document.getElementById('priceC2'),
-      priceNonC2:     document.getElementById('priceNonC2'),
-      priceDal3:      document.getElementById('priceDal3'),
-      immC2:          document.getElementById('immC2'),
-      immNonC2:       document.getElementById('immNonC2'),
-      immDal3:        document.getElementById('immDal3'),
-      sogC2:          document.getElementById('sogC2'),
-      scoC2:          document.getElementById('scoC2'),
-      sogNonC2:       document.getElementById('sogNonC2'),
-      scoNonC2:       document.getElementById('scoNonC2'),
-      sogDal3:        document.getElementById('sogDal3'),
-      scoDal3:        document.getElementById('scoDal3'),
-      sogComp:        document.getElementById('sogComp'),
-      scoComp:        document.getElementById('scoComp'),
-      dettaglio:      document.getElementById('dettaglio'),
-      importo:        document.getElementById('importo'),
-      titoloRis:      document.getElementById('titoloRisultato'),
-      vc:             document.getElementById('vc'),
-      btn:            document.getElementById('btnScarica'),
-    };
+    const f = {};
+    ['cliente','tipoCalcolo','voceContabile',
+     'priceNonC2','priceC2','priceDal3',
+     'immNonC2','immC2','immDal3',
+     'sogNonC2','scoNonC2','sogC2','scoC2','sogDal3','scoDal3','sogComp','scoComp',
+     'dettaglio','importo','titoloRisultato','vc','btnScarica']
+      .forEach(id => f[id] = document.getElementById(id));
 
     const minimoGarantito = 23.00;
 
     function calcola() {
-      // leggo prezzi dinamici
+      // prezzi dinamici
       const prezzi = {
-        c2:     parseFloat(f.priceC2.value)    || 0,
-        nonC2:  parseFloat(f.priceNonC2.value) || 0,
-        dal3:   parseFloat(f.priceDal3.value)  || 0
+        nonC2: parseFloat(f.priceNonC2.value) || 0,
+        c2:    parseFloat(f.priceC2.value)    || 0,
+        dal3:  parseFloat(f.priceDal3.value)  || 0
       };
+      const n     = (id=> +f[id].value||0);
+      const n0    = n('immNonC2'), n1 = n('immC2'), n2 = n('immDal3');
+      const s     = (id=> +f[id].value||0);
+      let dettaglioTxt = '', totale = 0;
 
-      const nNon   = +f.immNonC2.value || 0;
-      const nC2    = +f.immC2.value    || 0;
-      const nDal3  = +f.immDal3.value  || 0;
-      const sogN2  = +f.sogNonC2.value || 100;
-      const scoN2  = +f.scoNonC2.value || 0;
-      const sogC2  = +f.sogC2.value    || 100;
-      const scoC2  = +f.scoC2.value    || 0;
-      const sogD3  = +f.sogDal3.value  || 100;
-      const scoD3  = +f.scoDal3.value  || 0;
-      const sogC   = +f.sogComp.value  || 100;
-      const scoC   = +f.scoComp.value  || 0;
-
-      let dettaglioTxt = '', totale=0;
-
-      function elabora(count, prezzo, soglia, sconto, label) {
+      // calcolo soglia/eccedenza
+      function calc(count, prezzo, soglia, sconto, label) {
         if (count<=0) return 0;
-        const fullCount = Math.min(count, soglia);
-        const overCount = Math.max(0, count - soglia);
-        const costFull  = fullCount * prezzo;
-        const costOver  = overCount * prezzo;
-        let discount    = overCount>0 ? costOver * (sconto/100) : 0;
-        let subtotal    = costFull + (costOver - discount);
-
+        const full = Math.min(count,soglia), over = count-full;
+        const costF = full*prezzo, costO = over*prezzo;
+        const discO = over>0? costO*(sconto/100):0;
+        const sub = costF + (costO-discO);
         dettaglioTxt += `${label}: ${count}×€${prezzo.toFixed(2)} = €${(count*prezzo).toFixed(2)}\n`;
-        dettaglioTxt += `  Soglia (${soglia}): ${fullCount}×€${prezzo.toFixed(2)} = €${costFull.toFixed(2)}\n`;
-        if (overCount>0) {
-          dettaglioTxt += `  Eccedenza: ${overCount}×€${prezzo.toFixed(2)} = €${costOver.toFixed(2)}\n`;
-          dettaglioTxt += `  Sconto ${sconto}% su eccedenza: -€${discount.toFixed(2)}\n`;
+        dettaglioTxt += `  Soglia (${soglia}): ${full}×€${prezzo.toFixed(2)} = €${costF.toFixed(2)}\n`;
+        if (over>0) {
+          dettaglioTxt += `  Eccedenza: ${over}×€${prezzo.toFixed(2)} = €${costO.toFixed(2)}\n`;
+          dettaglioTxt += `  Sconto ${sconto}% su eccedenza: -€${discO.toFixed(2)}\n`;
         }
-        dettaglioTxt += `  Subtotale: €${subtotal.toFixed(2)}\n\n`;
-        return subtotal;
+        dettaglioTxt += `  Subtotale: €${sub.toFixed(2)}\n\n`;
+        return sub;
       }
 
-      totale += elabora(nNon, prezzi.nonC2, sogN2, scoN2, 'Non C2/C6/C7');
-      totale += elabora(nC2,  prezzi.c2,    sogC2, scoC2, 'C2/C6/C7 e terreni');
-      totale += elabora(nDal3,prezzi.dal3,  sogD3, scoD3, 'Dal 3° immobile');
+      totale += calc(n0, prezzi.nonC2, s('sogNonC2'), s('scoNonC2'), 'Non C2/C6/C7');
+      totale += calc(n1, prezzi.c2,    s('sogC2'),    s('scoC2'),    'C2/C6/C7 e terreni');
+      totale += calc(n2, prezzi.dal3,  s('sogDal3'),  s('scoDal3'),  'Categoria 3');
 
       // sconto complessivo
-      const totImm = nNon + nC2 + nDal3;
-      if (totImm >= sogC && scoC>0) {
-        let discount = totale * (scoC/100);
-        totale -= discount;
-        dettaglioTxt += `Sconto complessivo ${scoC}%: -€${discount.toFixed(2)}\n\n`;
+      const totI = n0+n1+n2, scC = s('scoComp');
+      if (totI>=s('sogComp') && scC>0) {
+        const d = totale*(scC/100);
+        totale -= d;
+        dettaglioTxt += `Sconto complessivo ${scC}%: -€${d.toFixed(2)}\n\n`;
       }
 
       dettaglioTxt += `Totale imponibile: €${totale.toFixed(2)}\n`;
-      let importo = f.tipoCalcolo.value==='acconto' ? totale/2 : totale;
+      let imp = f.tipoCalcolo.value==='acconto'? totale/2 : totale;
       dettaglioTxt += f.tipoCalcolo.value==='acconto'
-        ? `Acconto (50%): €${importo.toFixed(2)}\n`
-        : `Importo pieno: €${importo.toFixed(2)}\n`;
-
-      if (importo < minimoGarantito) {
+        ? `Acconto (50%): €${imp.toFixed(2)}\n`
+        : `Importo pieno: €${imp.toFixed(2)}\n`;
+      if (imp<minimoGarantito) {
         dettaglioTxt += `Minimo garantito: €${minimoGarantito.toFixed(2)}\n`;
-        importo = minimoGarantito;
+        imp = minimoGarantito;
       }
 
-      f.dettaglio.textContent   = dettaglioTxt;
-      f.importo.textContent     = `€${importo.toFixed(2)}`;
-      f.titoloRis.textContent   = `Competenze ${f.tipoCalcolo.value.charAt(0).toUpperCase()+f.tipoCalcolo.value.slice(1)} IMU`;
-      f.vc.textContent          = f.voceContabile.value;
+      f.dettaglio.textContent    = dettaglioTxt;
+      f.importo.textContent      = `€${imp.toFixed(2)}`;
+      f.titoloRisultato.textContent = `Competenze ${f.tipoCalcolo.value.charAt(0).toUpperCase()+f.tipoCalcolo.value.slice(1)} IMU`;
+      f.vc.textContent           = f.voceContabile.value;
     }
 
-    // Download report
-    f.btn.addEventListener('click', ()=>{
+    // listeners
+    Object.values(f).forEach(el=>{
+      if (el.tagName==='INPUT' || el.tagName==='SELECT') el.addEventListener('input',calcola)
+    });
+
+    document.getElementById('btnScarica').addEventListener('click',()=>{
       const testo =
 `STUDIO BDZ ASSOCIATI
 Calcolo Competenze IMU 2025
@@ -278,25 +269,15 @@ ${f.dettaglio.textContent}
 
 Totale: ${f.importo.textContent}
 `;
-      const blob = new Blob([testo],{type:'text/plain'});
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = `competenze_IMU_${f.cliente.value||'cliente'}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const blob=new Blob([testo],{type:'text/plain'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download=`comp_IMU_${f.cliente.value||'cliente'}.txt`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
     });
 
-    // Event listeners
-    ['priceC2','priceNonC2','priceDal3',
-     'immNonC2','immC2','immDal3',
-     'sogNonC2','scoNonC2','sogC2','scoC2','sogDal3','scoDal3','sogComp','scoComp',
-     'tipoCalcolo','voceContabile']
-      .forEach(id => document.getElementById(id).addEventListener('input', calcola));
-
-    calcola();  // calcolo iniziale
+    // calcolo iniziale
+    calcola();
   </script>
-
 </body>
 </html>

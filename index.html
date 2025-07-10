@@ -79,7 +79,7 @@
 
     <!-- SINISTRA: INPUT -->
     <div class="card">
-      <h2>Dati Cliente &amp; Prezzi</h2>
+      <h2>Dati Cliente & Prezzi</h2>
       <div class="form-grid">
         <div>
           <label>Cliente</label>
@@ -88,8 +88,9 @@
         <div>
           <label>Tipo Calcolo</label>
           <select id="tipoCalcolo">
-            <option value="acconto">Acconto (50%)</option>
-            <option value="saldo">Saldo (100%)</option>
+            <!-- MODIFICA 1: Testo delle opzioni -->
+            <option value="acconto">1° o 2° acconto semestrale (50%)</option>
+            <option value="saldo">Saldo (Totale annuo 100%)</option>
           </select>
         </div>
         <div>
@@ -128,7 +129,8 @@
 
       <!-- Riquadro soglie+sconti -->
       <div class="card sconti">
-        <h2>Configurazione Sconti (%)</h2>
+        <!-- MODIFICA 2: Titolo della card -->
+        <h2>Configurazione Sconti (%) eccedenze sopra soglia</h2>
         <div class="form-grid">
           <div>
             <label>Soglia Non C2/C6/C7</label>
@@ -177,7 +179,7 @@
         <div>Voce contabile: <span id="vc">00010</span></div>
       </div>
 
-      <button id="btnScarica">Scarica Report</button>
+      <button id="btnScarica">Scarica Report Word (.doc)</button>
     </div>
 
   </div>
@@ -246,7 +248,10 @@
 
       f.dettaglio.textContent    = dettaglioTxt;
       f.importo.textContent      = `€${imp.toFixed(2)}`;
-      f.titoloRisultato.textContent = `Competenze ${f.tipoCalcolo.value.charAt(0).toUpperCase()+f.tipoCalcolo.value.slice(1)} IMU`;
+      
+      // MIGLIORAMENTO: Usa il testo completo dal menu a tendina per il titolo
+      const selectedOptionText = f.tipoCalcolo.options[f.tipoCalcolo.selectedIndex].text;
+      f.titoloRisultato.textContent = `Competenze ${selectedOptionText}`;
       f.vc.textContent           = f.voceContabile.value;
     }
 
@@ -255,25 +260,40 @@
       if (el.tagName==='INPUT' || el.tagName==='SELECT') el.addEventListener('input',calcola)
     });
 
+    // MODIFICA 3: Funzione di download per Word (.doc)
     document.getElementById('btnScarica').addEventListener('click',()=>{
-      const testo =
-`STUDIO BDZ ASSOCIATI
-Calcolo Competenze IMU 2025
+      const selectedOptionText = f.tipoCalcolo.options[f.tipoCalcolo.selectedIndex].text;
+      const clienteNome = f.cliente.value || 'N/D';
 
-Cliente: ${f.cliente.value||'–'}
-Tipo: ${f.tipoCalcolo.value.charAt(0).toUpperCase()+f.tipoCalcolo.value.slice(1)}
-Voce: ${f.voceContabile.value}
+      // Crea un contenuto HTML per il file Word
+      const htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>Report Competenze IMU</title></head>
+        <body>
+          <h1>STUDIO BDZ ASSOCIATI</h1>
+          <h2>Report Calcolo Competenze IMU 2025</h2>
+          <p><strong>Cliente:</strong> ${clienteNome}</p>
+          <p><strong>Tipo Calcolo:</strong> ${selectedOptionText}</p>
+          <p><strong>Voce Contabile:</strong> ${f.voceContabile.value}</p>
+          <hr>
+          <h3>DETTAGLIO CALCOLO</h3>
+          <pre>${f.dettaglio.textContent}</pre>
+          <hr>
+          <h3>TOTALE FINALE: ${f.importo.textContent}</h3>
+        </body>
+        </html>`;
 
---- DETTAGLIO ---
-${f.dettaglio.textContent}
-
-Totale: ${f.importo.textContent}
-`;
-      const blob=new Blob([testo],{type:'text/plain'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url; a.download=`comp_IMU_${f.cliente.value||'cliente'}.txt`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      const blob = new Blob(['\ufeff', htmlContent], {
+        type: 'application/msword'
+      });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Report_IMU_${clienteNome.replace(/ /g, '_')}.doc`; // Salva come .doc
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     });
 
     // calcolo iniziale

@@ -1,679 +1,281 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calcolatore Competenze Studio per IMU - BDZ Associati</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide-react@latest/dist/lucide-react.umd.js"></script>
-    <style>
-        body { margin: 0; padding: 0; }
-        #root { width: 100%; height: 100vh; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calcolatore Competenze IMU – BDZ Associati</title>
+  <style>
+    /* RESET & FONT */
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #faf8f7;
+      color: #333;
+      line-height: 1.4;
+      padding: 20px;
+    }
+    h1 { text-align:center; margin-bottom:20px; color:#6b4c57; }
+    /* GRID CONTAINER */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    /* CARD */
+    .card {
+      background: #fff;
+      border: 1px solid #e1e5e9;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #6b4c57;
+    }
+    label { display:block; margin-bottom:5px; font-size:14px; color:#8b6b73; }
+    input, select {
+      width:100%;
+      padding:10px;
+      margin-bottom:15px;
+      border:1px solid #d1d5db;
+      border-radius:8px;
+      font-size:14px;
+    }
+    pre {
+      background:#f8f9fa;
+      padding:15px;
+      border-radius:8px;
+      font-family:Consolas, "Courier New", monospace;
+      font-size:13px;
+      white-space: pre-wrap;
+      border:1px solid #e9ecef;
+      margin-bottom:15px;
+    }
+    .result {
+      text-align:center;
+      padding:20px;
+      background: linear-gradient(135deg,#f7f3f3 0%,#ede5e1 100%);
+      border-radius:12px;
+      border:1px solid #e0d4d0;
+    }
+    .result h3 {
+      margin-bottom:10px;
+      color:#6b4c57;
+    }
+    .result .amount {
+      font-size:32px;
+      font-weight:bold;
+      margin-bottom:5px;
+    }
+    button {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      margin: 0 auto;
+      padding:12px 20px;
+      font-size:16px;
+      border:none;
+      border-radius:10px;
+      background: #6b4c57;
+      color:#fff;
+      cursor:pointer;
+      transition:background .2s;
+    }
+    button:hover { background: #563d46; }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const { Download } = lucideReact;
 
-        const IMUCalculator = () => {
-          const [cliente, setCliente] = useState('');
-          const [tipoCalcolo, setTipoCalcolo] = useState('acconto');
-          const [voceContabile, setVoceContabile] = useState('00010');
-          
-          // Dati immobili
-          const [immobiliC2C6C7, setImmobiliC2C6C7] = useState(0);
-          const [immobiliNonC2C6C7, setImmobiliNonC2C6C7] = useState(0);
-          const [immobiliDal3, setImmobiliDal3] = useState(0);
-          
-          // Soglie e sconti configurabili
-          const [sogliaC2C6C7, setSogliaC2C6C7] = useState(100);
-          const [scontoC2C6C7, setScontoC2C6C7] = useState(0);
-          const [sogliaNonC2C6C7, setSogliaNonC2C6C7] = useState(100);
-          const [scontoNonC2C6C7, setScontoNonC2C6C7] = useState(0);
-          const [sogliaDal3, setSogliaDal3] = useState(100);
-          const [scontoDal3, setScontoDal3] = useState(0);
-          const [sogliaComplessiva, setSogliaComplessiva] = useState(100);
-          const [scontoComplessivo, setScontoComplessivo] = useState(0);
-          
-          // Calcoli
-          const [dettaglioCalcolo, setDettaglioCalcolo] = useState('');
-          const [totaleImponibile, setTotaleImponibile] = useState(0);
-          const [importoFinale, setImportoFinale] = useState(0);
+  <h1>Calcolatore Competenze IMU 2025</h1>
+  <div class="container">
+    <!-- INGRESSO DATI -->
+    <div class="card">
+      <h2>Dati Cliente</h2>
+      <label>Cliente:</label>
+      <input type="text" id="cliente" placeholder="Inserisci nome cliente" />
 
-          const prezzi = {
-            c2c6c7: 17.00,
-            nonC2c6c7: 28.00,
-            dal3: 17.00
-          };
+      <label>Tipo Calcolo:</label>
+      <select id="tipoCalcolo">
+        <option value="acconto">Acconto (50%)</option>
+        <option value="saldo">Saldo (100%)</option>
+      </select>
 
-          useEffect(() => {
-            calcolaCompetenze();
-          }, [immobiliC2C6C7, immobiliNonC2C6C7, immobiliDal3, sogliaC2C6C7, scontoC2C6C7, sogliaNonC2C6C7, scontoNonC2C6C7, sogliaDal3, scontoDal3, sogliaComplessiva, scontoComplessivo, tipoCalcolo]);
+      <label>Voce Contabile:</label>
+      <input type="text" id="voceContabile" value="00010" />
 
-          const calcolaCompetenze = () => {
-            let dettaglio = '';
-            let totale = 0;
-            
-            // Calcolo per categoria C2/C6/C7
-            if (immobiliC2C6C7 > 0) {
-              let costoC2 = immobiliC2C6C7 * prezzi.c2c6c7;
-              let scontoApplicatoC2 = 0;
-              
-              if (immobiliC2C6C7 >= sogliaC2C6C7 && scontoC2C6C7 > 0) {
-                scontoApplicatoC2 = costoC2 * (scontoC2C6C7 / 100);
-                costoC2 -= scontoApplicatoC2;
-              }
-              
-              dettaglio += `Ulteriori immobili C2/C6/C7 e terreni: ${immobiliC2C6C7} × €${prezzi.c2c6c7.toFixed(2)} = €${(immobiliC2C6C7 * prezzi.c2c6c7).toFixed(2)}\n`;
-              if (scontoApplicatoC2 > 0) {
-                dettaglio += `Sconto categoria (${scontoC2C6C7}%): -€${scontoApplicatoC2.toFixed(2)}\n`;
-              }
-              dettaglio += `Subtotale C2/C6/C7: €${costoC2.toFixed(2)}\n\n`;
-              totale += costoC2;
-            }
-            
-            // Calcolo per categoria Non C2/C6/C7
-            if (immobiliNonC2C6C7 > 0) {
-              let costoNonC2 = immobiliNonC2C6C7 * prezzi.nonC2c6c7;
-              let scontoApplicatoNonC2 = 0;
-              
-              if (immobiliNonC2C6C7 >= sogliaNonC2C6C7 && scontoNonC2C6C7 > 0) {
-                scontoApplicatoNonC2 = costoNonC2 * (scontoNonC2C6C7 / 100);
-                costoNonC2 -= scontoApplicatoNonC2;
-              }
-              
-              dettaglio += `2 Immobili non C2/C6/C7: ${immobiliNonC2C6C7} × €${prezzi.nonC2c6c7.toFixed(2)} = €${(immobiliNonC2C6C7 * prezzi.nonC2c6c7).toFixed(2)}\n`;
-              if (scontoApplicatoNonC2 > 0) {
-                dettaglio += `Sconto categoria (${scontoNonC2C6C7}%): -€${scontoApplicatoNonC2.toFixed(2)}\n`;
-              }
-              dettaglio += `Subtotale non C2/C6/C7: €${costoNonC2.toFixed(2)}\n\n`;
-              totale += costoNonC2;
-            }
-            
-            // Calcolo per categoria Dal 3° immobile
-            if (immobiliDal3 > 0) {
-              let costoDal3 = immobiliDal3 * prezzi.dal3;
-              let scontoApplicatoDal3 = 0;
-              
-              if (immobiliDal3 >= sogliaDal3 && scontoDal3 > 0) {
-                scontoApplicatoDal3 = costoDal3 * (scontoDal3 / 100);
-                costoDal3 -= scontoApplicatoDal3;
-              }
-              
-              dettaglio += `Dal 3° immobile non C2/C6/C7: ${immobiliDal3} × €${prezzi.dal3.toFixed(2)} = €${(immobiliDal3 * prezzi.dal3).toFixed(2)}\n`;
-              if (scontoApplicatoDal3 > 0) {
-                dettaglio += `Sconto categoria (${scontoDal3}%): -€${scontoApplicatoDal3.toFixed(2)}\n`;
-              }
-              dettaglio += `Subtotale dal 3°: €${costoDal3.toFixed(2)}\n\n`;
-              totale += costoDal3;
-            }
-            
-            // Sconto complessivo
-            const totaleImmobili = immobiliC2C6C7 + immobiliNonC2C6C7 + immobiliDal3;
-            let scontoComplessivoApplicato = 0;
-            
-            if (totaleImmobili >= sogliaComplessiva && scontoComplessivo > 0) {
-              scontoComplessivoApplicato = totale * (scontoComplessivo / 100);
-              totale -= scontoComplessivoApplicato;
-            }
-            
-            if (scontoComplessivoApplicato > 0) {
-              dettaglio += `Sconto complessivo (${scontoComplessivo}%): -€${scontoComplessivoApplicato.toFixed(2)}\n`;
-            }
-            
-            dettaglio += `\nTotale imponibile: €${totale.toFixed(2)}\n`;
-            
-            let importoCalcolato = totale;
-            if (tipoCalcolo === 'acconto') {
-              importoCalcolato = totale / 2;
-              dettaglio += `Acconto (50%): €${importoCalcolato.toFixed(2)}\n`;
-            }
-            
-            // Minimo garantito
-            const minimoGarantito = 23.00;
-            if (importoCalcolato < minimoGarantito) {
-              dettaglio += `Minimo garantito: €${minimoGarantito.toFixed(2)}\n`;
-              importoCalcolato = minimoGarantito;
-            }
-            
-            dettaglio += `\nImporto finale: €${importoCalcolato.toFixed(2)}`;
-            dettaglio += `\nVoce contabile: ${voceContabile}`;
-            
-            setDettaglioCalcolo(dettaglio);
-            setTotaleImponibile(totale);
-            setImportoFinale(importoCalcolato);
-          };
+      <h2>Numero Immobili per Categoria</h2>
+      <label>Immobili C2/C6/C7 e terreni (€17,00 cad.):</label>
+      <input type="number" id="immC2" min="0" value="0" />
 
-          const generaPDF = () => {
-            const contenutoPDF = `
-STUDIO BASSO DE BORTOLI ZAMBELLI
-Viale Palladio 42, 37138 Verona
-Tel. 04557694 - Email: fiscale@bdzassociati.it
+      <label>Immobili non C2/C6/C7 (€28,00 cad.):</label>
+      <input type="number" id="immNonC2" min="0" value="0" />
 
-CALCOLATORE COMPETENZE IMU 2025
+      <label>Dal 3° immobile (€17,00 cad.):</label>
+      <input type="number" id="immDal3" min="0" value="0" />
 
-Cliente: ${cliente || 'Non specificato'}
-Data: ${new Date().toLocaleDateString('it-IT')}
-Tipo calcolo: ${tipoCalcolo.charAt(0).toUpperCase() + tipoCalcolo.slice(1)}
+      <h2>Configurazione Sconti (%)</h2>
+      <label>Soglia C2/C6/C7 e terreni:</label>
+      <input type="number" id="sogC2" min="1" value="100" />
+      <label>Sconto % C2/C6/C7:</label>
+      <input type="number" id="scoC2" min="0" max="100" value="0" />
 
-DETTAGLIO CALCOLO:
-${dettaglioCalcolo}
+      <label>Soglia non C2/C6/C7:</label>
+      <input type="number" id="sogNonC2" min="1" value="100" />
+      <label>Sconto % non C2/C6/C7:</label>
+      <input type="number" id="scoNonC2" min="0" max="100" value="0" />
 
-Totale competenze ${tipoCalcolo}: €${importoFinale.toFixed(2)}
-            `;
-            
-            const elemento = document.createElement('a');
-            const file = new Blob([contenutoPDF], { type: 'text/plain' });
-            elemento.href = URL.createObjectURL(file);
-            elemento.download = `competenze_imu_${cliente || 'cliente'}_${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(elemento);
-            elemento.click();
-            document.body.removeChild(elemento);
-          };
+      <label>Soglia Dal 3° immobile:</label>
+      <input type="number" id="sogDal3" min="1" value="100" />
+      <label>Sconto % Dal 3°:</label>
+      <input type="number" id="scoDal3" min="0" max="100" value="0" />
 
-          return React.createElement('div', {
-            style: {
-              minHeight: '100vh',
-              background: 'linear-gradient(135deg, #faf8f7 0%, #f5f1f0 100%)',
-              padding: '20px',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-            }
-          }, React.createElement('div', {
-            style: {
-              maxWidth: '1200px',
-              margin: '0 auto',
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: '20px',
-              padding: '30px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
-            }
-          }, 
-          React.createElement('div', {
-            style: {
-              textAlign: 'center',
-              marginBottom: '30px',
-              padding: '20px',
-              background: 'linear-gradient(135deg, #f9f5f5 0%, #f0e8e8 100%)',
-              borderRadius: '15px',
-              color: '#6b4c57',
-              border: '1px solid #e8ddd8'
-            }
-          }, 
-          React.createElement('div', { style: { marginBottom: '15px' } },
-            React.createElement('svg', {
-              width: 120,
-              height: 60,
-              viewBox: '0 0 120 60',
-              style: { margin: '0 auto' }
-            },
-              React.createElement('text', {
-                x: 60,
-                y: 25,
-                textAnchor: 'middle',
-                style: {
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  fill: '#8b4a5c',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                }
-              }, 'BDZ'),
-              React.createElement('text', {
-                x: 60,
-                y: 40,
-                textAnchor: 'middle',
-                style: {
-                  fontSize: '8px',
-                  fill: '#6b4c57',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  letterSpacing: '1px'
-                }
-              }, 'STUDIO ASSOCIATO'),
-              React.createElement('text', {
-                x: 60,
-                y: 52,
-                textAnchor: 'middle',
-                style: {
-                  fontSize: '6px',
-                  fill: '#8b6b73',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  letterSpacing: '0.5px'
-                }
-              }, 'BASSO DE BORTOLI ZAMBELLI')
-            )
-          ),
-          React.createElement('h1', {
-            style: { margin: '0 0 10px 0', fontSize: '28px', fontWeight: '600' }
-          }, 'Calcolatore Competenze Studio per IMU'),
-          React.createElement('div', {
-            style: { fontSize: '14px', opacity: '0.8', color: '#8b6b73' }
-          }, 
-            'Studio Basso De Bortoli Zambelli',
-            React.createElement('br'),
-            'Viale Palladio 42, 37138 Verona',
-            React.createElement('br'),
-            'Tel. 04557694 - Email: fiscale@bdzassociati.it'
-          )
-          ),
-          React.createElement('div', {
-            style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }
-          }, 
-          React.createElement('div', {
-            style: { display: 'flex', flexDirection: 'column', gap: '20px' }
-          },
-          React.createElement('div', {
-            style: {
-              background: '#ffffff',
-              padding: '20px',
-              borderRadius: '15px',
-              border: '1px solid #e1e5e9',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-            }
-          },
-          React.createElement('h3', {
-            style: { margin: '0 0 15px 0', color: '#6b4c57', fontSize: '18px' }
-          }, 'Dati Cliente'),
-          React.createElement('label', {
-            style: { display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }
-          }, 'Nome Cliente:'),
-          React.createElement('input', {
-            type: 'text',
-            value: cliente,
-            onChange: (e) => setCliente(e.target.value),
-            placeholder: 'Inserisci nome cliente',
-            style: {
-              width: '100%',
-              padding: '12px',
-              border: '1px solid #d1d5db',
-              borderRadius: '10px',
-              fontSize: '16px',
-              marginBottom: '15px',
-              outline: 'none',
-              boxSizing: 'border-box'
-            }
-          }),
-          React.createElement('label', {
-            style: { display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }
-          }, 'Tipo Calcolo:'),
-          React.createElement('select', {
-            value: tipoCalcolo,
-            onChange: (e) => setTipoCalcolo(e.target.value),
-            style: {
-              width: '100%',
-              padding: '12px',
-              border: '1px solid #d1d5db',
-              borderRadius: '10px',
-              fontSize: '16px',
-              marginBottom: '15px',
-              outline: 'none',
-              boxSizing: 'border-box'
-            }
-          },
-          React.createElement('option', { value: 'acconto' }, 'Acconto'),
-          React.createElement('option', { value: 'saldo' }, 'Saldo')
-          ),
-          React.createElement('label', {
-            style: { display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }
-          }, 'Voce Contabile:'),
-          React.createElement('input', {
-            type: 'text',
-            value: voceContabile,
-            onChange: (e) => setVoceContabile(e.target.value),
-            placeholder: '00010',
-            style: {
-              width: '100%',
-              padding: '12px',
-              border: '1px solid #d1d5db',
-              borderRadius: '10px',
-              fontSize: '16px',
-              outline: 'none',
-              boxSizing: 'border-box'
-            }
-          })
-          ),
-          React.createElement('div', {
-            style: {
-              background: '#ffffff',
-              padding: '20px',
-              borderRadius: '15px',
-              border: '1px solid #e1e5e9',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-            }
-          },
-          React.createElement('h3', {
-            style: { margin: '0 0 15px 0', color: '#6b4c57', fontSize: '18px' }
-          }, 'Numero Immobili per Categoria'),
-          React.createElement('div', { style: { marginBottom: '15px' } },
-            React.createElement('label', {
-              style: { display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }
-            }, 'Ulteriori immobili C2/C6/C7 e terreni (€17,00):'),
-            React.createElement('input', {
-              type: 'number',
-              min: '0',
-              value: immobiliC2C6C7,
-              onChange: (e) => setImmobiliC2C6C7(parseInt(e.target.value) || 0),
-              style: {
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '10px',
-                fontSize: '16px',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }
-            })
-          ),
-          React.createElement('div', { style: { marginBottom: '15px' } },
-            React.createElement('label', {
-              style: { display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }
-            }, '2 Immobili non C2/C6/C7 (€28,00):'),
-            React.createElement('input', {
-              type: 'number',
-              min: '0',
-              value: immobiliNonC2C6C7,
-              onChange: (e) => setImmobiliNonC2C6C7(parseInt(e.target.value) || 0),
-              style: {
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '10px',
-                fontSize: '16px',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }
-            })
-          ),
-          React.createElement('div', {},
-            React.createElement('label', {
-              style: { display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }
-            }, 'Dal 3° immobile non C2/C6/C7 (€17,00):'),
-            React.createElement('input', {
-              type: 'number',
-              min: '0',
-              value: immobiliDal3,
-              onChange: (e) => setImmobiliDal3(parseInt(e.target.value) || 0),
-              style: {
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '10px',
-                fontSize: '16px',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }
-            })
-          )
-          ),
-          React.createElement('div', {
-            style: {
-              background: '#ffffff',
-              padding: '20px',
-              borderRadius: '15px',
-              border: '1px solid #e1e5e9',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-            }
-          },
-          React.createElement('h3', {
-            style: { margin: '0 0 15px 0', color: '#6b4c57', fontSize: '18px' }
-          }, 'Configurazione Sconti'),
-          React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' } },
-            React.createElement('div', {},
-              React.createElement('label', {
-                style: { display: 'block', marginBottom: '5px', fontSize: '12px', color: '#8b6b73' }
-              }, 'Soglia C2/C6/C7:'),
-              React.createElement('input', {
-                type: 'number',
-                min: '1',
-                value: sogliaC2C6C7,
-                onChange: (e) => setSogliaC2C6C7(parseInt(e.target.value) || 100),
-                style: {
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }
-              })
-            ),
-            React.createElement('div', {},
-              React.createElement('label', {
-                style: { display: 'block', marginBottom: '5px', fontSize: '12px', color: '#8b6b73' }
-              }, 'Sconto % C2/C6/C7:'),
-              React.createElement('input', {
-                type: 'number',
-                min: '0',
-                max: '100',
-                value: scontoC2C6C7,
-                onChange: (e) => setScontoC2C6C7(parseInt(e.target.value) || 0),
-                style: {
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }
-              })
-            )
-          ),
-          React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' } },
-            React.createElement('div', {},
-              React.createElement('label', {
-                style: { display: 'block', marginBottom: '5px', fontSize: '12px', color: '#8b6b73' }
-              }, 'Soglia Non C2/C6/C7:'),
-              React.createElement('input', {
-                type: 'number',
-                min: '1',
-                value: sogliaNonC2C6C7,
-                onChange: (e) => setSogliaNonC2C6C7(parseInt(e.target.value) || 100),
-                style: {
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }
-              })
-            ),
-            React.createElement('div', {},
-              React.createElement('label', {
-                style: { display: 'block', marginBottom: '5px', fontSize: '12px', color: '#8b6b73' }
-              }, 'Sconto % Non C2/C6/C7:'),
-              React.createElement('input', {
-                type: 'number',
-                min: '0',
-                max: '100',
-                value: scontoNonC2C6C7,
-                onChange: (e) => setScontoNonC2C6C7(parseInt(e.target.value) || 0),
-                style: {
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }
-              })
-            )
-          ),
-          React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' } },
-            React.createElement('div', {},
-              React.createElement('label', {
-                style: { display: 'block', marginBottom: '5px', fontSize: '12px', color: '#8b6b73' }
-              }, 'Soglia Dal 3°:'),
-              React.createElement('input', {
-                type: 'number',
-                min: '1',
-                value: sogliaDal3,
-                onChange: (e) => setSogliaDal3(parseInt(e.target.value) || 100),
-                style: {
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }
-              })
-            ),
-            React.createElement('div', {},
-              React.createElement('label', {
-                style: { display: 'block', marginBottom: '5px', fontSize: '12px', color: '#8b6b73' }
-              }, 'Sconto % Dal 3°:'),
-              React.createElement('input', {
-                type: 'number',
-                min: '0',
-                max: '100',
-                value: scontoDal3,
-                onChange: (e) => setScontoDal3(parseInt(e.target.value) || 0),
-                style: {
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }
-              })
-            )
-          ),
-          React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' } },
-            React.createElement('div', {},
-              React.createElement('label', {
-                style: { display: 'block', marginBottom: '5px', fontSize: '12px', color: '#8b6b73' }
-              }, 'Soglia Complessiva:'),
-              React.createElement('input', {
-                type: 'number',
-                min: '1',
-                value: sogliaComplessiva,
-                onChange: (e) => setSogliaComplessiva(parseInt(e.target.value) || 100),
-                style: {
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }
-              })
-            ),
-            React.createElement('div', {},
-              React.createElement('label', {
-                style: { display: 'block', marginBottom: '5px', fontSize: '12px', color: '#8b6b73' }
-              }, 'Sconto % Complessivo:'),
-              React.createElement('input', {
-                type: 'number',
-                min: '0',
-                max: '100',
-                value: scontoComplessivo,
-                onChange: (e) => setScontoComplessivo(parseInt(e.target.value) || 0),
-                style: {
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }
-              })
-            )
-          )
-          )
-          ),
-          React.createElement('div', {
-            style: { display: 'flex', flexDirection: 'column', gap: '20px' }
-          },
-          React.createElement('div', {
-            style: {
-              background: '#ffffff',
-              padding: '20px',
-              borderRadius: '15px',
-              border: '1px solid #e1e5e9',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-            }
-          },
-          React.createElement('h3', {
-            style: { margin: '0 0 15px 0', color: '#6b4c57', fontSize: '18px' }
-          }, 'Dettaglio Calcolo'),
-          React.createElement('pre', {
-            style: {
-              background: '#f8f9fa',
-              padding: '15px',
-              borderRadius: '10px',
-              fontSize: '13px',
-              lineHeight: '1.4',
-              margin: '0',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'Monaco, Consolas, "Lucida Console", monospace',
-              color: '#2c3e50',
-              border: '1px solid #e9ecef'
-            }
-          }, dettaglioCalcolo || 'Inserisci i dati per vedere il calcolo...')
-          ),
-          React.createElement('div', {
-            style: {
-              background: 'linear-gradient(135deg, #f7f3f3 0%, #ede5e1 100%)',
-              padding: '25px',
-              borderRadius: '15px',
-              color: '#6b4c57',
-              textAlign: 'center',
-              border: '1px solid #e0d4d0'
-            }
-          },
-          React.createElement('h3', {
-            style: { margin: '0 0 10px 0', fontSize: '20px', fontWeight: '600' }
-          }, `Competenze ${tipoCalcolo.charAt(0).toUpperCase() + tipoCalcolo.slice(1)} IMU`),
-          React.createElement('div', {
-            style: { fontSize: '32px', fontWeight: 'bold', marginBottom: '10px' }
-          }, `€${importoFinale.toFixed(2)}`),
-          React.createElement('div', {
-            style: { fontSize: '14px', opacity: '0.8', color: '#8b6b73' }
-          }, `Voce Contabile: ${voceContabile}`)
-          ),
-          React.createElement('button', {
-            onClick: generaPDF,
-            style: {
-              background: 'linear-gradient(135deg, #f4eeee 0%, #ebe1df 100%)',
-              color: '#6b4c57',
-              border: '1px solid #d6c8c4',
-              padding: '15px 25px',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              boxShadow: '0 4px 15px rgba(214, 200, 196, 0.3)'
-            }
-          },
-          React.createElement(Download, { size: 20 }),
-          'Genera Report PDF'
-          )
-          )
-          )
-          ));
-        };
+      <label>Soglia complessiva:</label>
+      <input type="number" id="sogComp" min="1" value="100" />
+      <label>Sconto % complessivo:</label>
+      <input type="number" id="scoComp" min="0" max="100" value="0" />
+    </div>
 
-        ReactDOM.render(React.createElement(IMUCalculator), document.getElementById('root'));
-    </script>
+    <!-- RISULTATI -->
+    <div class="card">
+      <h2>Dettaglio Calcolo</h2>
+      <pre id="dettaglio">Inserisci i dati per vedere il calcolo…</pre>
+
+      <div class="result">
+        <h3 id="titoloRisultato">Competenze Acconto IMU</h3>
+        <div class="amount" id="importo">€0.00</div>
+        <div>Voce contabile: <span id="vc">00010</span></div>
+      </div>
+
+      <button id="btnScarica">Scarica Report</button>
+    </div>
+  </div>
+
+  <script>
+    // RIFERIMENTI DOM
+    const f = {
+      cliente:        document.getElementById('cliente'),
+      tipoCalcolo:    document.getElementById('tipoCalcolo'),
+      voceContabile:  document.getElementById('voceContabile'),
+      immC2:          document.getElementById('immC2'),
+      immNonC2:       document.getElementById('immNonC2'),
+      immDal3:        document.getElementById('immDal3'),
+      sogC2:          document.getElementById('sogC2'),
+      scoC2:          document.getElementById('scoC2'),
+      sogNonC2:       document.getElementById('sogNonC2'),
+      scoNonC2:       document.getElementById('scoNonC2'),
+      sogDal3:        document.getElementById('sogDal3'),
+      scoDal3:        document.getElementById('scoDal3'),
+      sogComp:        document.getElementById('sogComp'),
+      scoComp:        document.getElementById('scoComp'),
+      dettaglio:      document.getElementById('dettaglio'),
+      importo:        document.getElementById('importo'),
+      titoloRis:      document.getElementById('titoloRisultato'),
+      vc:             document.getElementById('vc'),
+      btn:            document.getElementById('btnScarica'),
+    };
+
+    // PREZZI FISSI
+    const prezzi = { c2:17.00, nonC2:28.00, dal3:17.00 };
+    const minimoGarantito = 23.00;
+
+    // CALCOLO
+    function calcola() {
+      const nC2    = +f.immC2.value || 0;
+      const nNon   = +f.immNonC2.value || 0;
+      const nDal3  = +f.immDal3.value || 0;
+      const sogC2  = +f.sogC2.value    || 100;
+      const scoC2  = +f.scoC2.value    || 0;
+      const sogN2  = +f.sogNonC2.value || 100;
+      const scoN2  = +f.scoNonC2.value || 0;
+      const sogD3  = +f.sogDal3.value  || 100;
+      const scoD3  = +f.scoDal3.value  || 0;
+      const sogC   = +f.sogComp.value  || 100;
+      const scoC   = +f.scoComp.value  || 0;
+      let dettaglio = '', totale=0;
+
+      // Categorie
+      function elabora(count, prezzo, soglia, sconto, label) {
+        if (count<=0) return 0;
+        let costo = count*prezzo;
+        dettaglio += `${label}: ${count}×€${prezzo.toFixed(2)} = €${(count*prezzo).toFixed(2)}\n`;
+        if (count>=soglia && sconto>0) {
+          let sc = costo*(sconto/100);
+          costo -= sc;
+          dettaglio += `  Sconto ${sconto}%: -€${sc.toFixed(2)}\n`;
+        }
+        dettaglio += `  Subtotale: €${costo.toFixed(2)}\n\n`;
+        return costo;
+      }
+      totale += elabora(nC2, prezzi.c2, sogC2, scoC2, 'C2/C6/C7 e terreni');
+      totale += elabora(nNon, prezzi.nonC2, sogN2, scoN2, 'Non C2/C6/C7');
+      totale += elabora(nDal3,prezzi.dal3,sogD3,scoD3,'Dal 3° immobile');
+
+      // Sconto complessivo
+      const totImm = nC2+nNon+nDal3;
+      if (totImm>=sogC && scoC>0) {
+        let sC = totale*(scoC/100);
+        totale -= sC;
+        dettaglio += `Sconto complessivo ${scoC}%: -€${sC.toFixed(2)}\n\n`;
+      }
+
+      dettaglio += `Totale imponibile: €${totale.toFixed(2)}\n`;
+      let importo = (f.tipoCalcolo.value==='acconto') 
+                     ? totale/2 
+                     : totale;
+      dettaglio += `${f.tipoCalcolo.value==='acconto'?'Acconto (50%)':'Importo pieno'}: €${importo.toFixed(2)}\n`;
+
+      // minimo
+      if (importo<minimoGarantito) {
+        dettaglio += `Minimo garantito: €${minimoGarantito.toFixed(2)}\n`;
+        importo = minimoGarantito;
+      }
+
+      // Stampa
+      f.dettaglio.textContent = dettaglio;
+      f.importo.textContent = `€${importo.toFixed(2)}`;
+      f.titoloRis.textContent = `Competenze ${f.tipoCalcolo.value.charAt(0).toUpperCase()+f.tipoCalcolo.value.slice(1)} IMU`;
+      f.vc.textContent = f.voceContabile.value;
+    }
+
+    // GENERA REPORT TESTO
+    f.btn.addEventListener('click', ()=>{
+      const testo = 
+`STUDIO BDZ ASSOCIATI
+Calcolo Competenze IMU 2025
+
+Cliente: ${f.cliente.value||'–'}
+Tipo: ${f.tipoCalcolo.value.charAt(0).toUpperCase()+f.tipoCalcolo.value.slice(1)}
+Voce: ${f.voceContabile.value}
+
+--- DETTAGLIO ---
+${f.dettaglio.textContent}
+
+Totale: ${f.importo.textContent}
+`;
+      const blob = new Blob([testo],{type:'text/plain'});
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `competenze_IMU_${f.cliente.value||'cliente'}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+
+    // collego i listener
+    Object.values(f).forEach(el => {
+      if (['immC2','immNonC2','immDal3','sogC2','scoC2','sogNonC2','scoNonC2','sogDal3','scoDal3','sogComp','scoComp','tipoCalcolo','voceContabile'].includes(el.id)) {
+        el.addEventListener('input', calcola);
+      }
+    });
+    // calcolo iniziale
+    calcola();
+  </script>
+
 </body>
 </html>
-Made with

@@ -1,0 +1,653 @@
+import React, { useState, useEffect } from 'react';
+import { Printer, Download } from 'lucide-react';
+
+const IMUCalculator = () => {
+  const [cliente, setCliente] = useState('');
+  const [tipoCalcolo, setTipoCalcolo] = useState('acconto');
+  const [voceContabile, setVoceContabile] = useState('00010');
+  
+  // Dati immobili
+  const [immobiliC2C6C7, setImmobiliC2C6C7] = useState(0);
+  const [immobiliNonC2C6C7, setImmobiliNonC2C6C7] = useState(0);
+  const [immobiliDal3, setImmobiliDal3] = useState(0);
+  
+  // Soglie e sconti configurabili
+  const [sogliaC2C6C7, setSogliaC2C6C7] = useState(100);
+  const [scontoC2C6C7, setScontoC2C6C7] = useState(0);
+  const [sogliaNonC2C6C7, setSogliaNonC2C6C7] = useState(100);
+  const [scontoNonC2C6C7, setScontoNonC2C6C7] = useState(0);
+  const [sogliaDal3, setSogliaDal3] = useState(100);
+  const [scontoDal3, setScontoDal3] = useState(0);
+  const [sogliaComplessiva, setSogliaComplessiva] = useState(100);
+  const [scontoComplessivo, setScontoComplessivo] = useState(0);
+  
+  // Calcoli
+  const [dettaglioCalcolo, setDettaglioCalcolo] = useState('');
+  const [totaleImponibile, setTotaleImponibile] = useState(0);
+  const [importoFinale, setImportoFinale] = useState(0);
+
+  const prezzi = {
+    c2c6c7: 17.00,
+    nonC2c6c7: 28.00,
+    dal3: 17.00
+  };
+
+  useEffect(() => {
+    calcolaCompetenze();
+  }, [immobiliC2C6C7, immobiliNonC2C6C7, immobiliDal3, sogliaC2C6C7, scontoC2C6C7, sogliaNonC2C6C7, scontoNonC2C6C7, sogliaDal3, scontoDal3, sogliaComplessiva, scontoComplessivo, tipoCalcolo]);
+
+  const calcolaCompetenze = () => {
+    let dettaglio = '';
+    let totale = 0;
+    
+    // Calcolo per categoria C2/C6/C7
+    if (immobiliC2C6C7 > 0) {
+      let costoC2 = immobiliC2C6C7 * prezzi.c2c6c7;
+      let scontoApplicatoC2 = 0;
+      
+      if (immobiliC2C6C7 >= sogliaC2C6C7 && scontoC2C6C7 > 0) {
+        scontoApplicatoC2 = costoC2 * (scontoC2C6C7 / 100);
+        costoC2 -= scontoApplicatoC2;
+      }
+      
+      dettaglio += `Ulteriori immobili C2/C6/C7 e terreni: ${immobiliC2C6C7} × €${prezzi.c2c6c7.toFixed(2)} = €${(immobiliC2C6C7 * prezzi.c2c6c7).toFixed(2)}\n`;
+      if (scontoApplicatoC2 > 0) {
+        dettaglio += `Sconto categoria (${scontoC2C6C7}%): -€${scontoApplicatoC2.toFixed(2)}\n`;
+      }
+      dettaglio += `Subtotale C2/C6/C7: €${costoC2.toFixed(2)}\n\n`;
+      totale += costoC2;
+    }
+    
+    // Calcolo per categoria Non C2/C6/C7
+    if (immobiliNonC2C6C7 > 0) {
+      let costoNonC2 = immobiliNonC2C6C7 * prezzi.nonC2c6c7;
+      let scontoApplicatoNonC2 = 0;
+      
+      if (immobiliNonC2C6C7 >= sogliaNonC2C6C7 && scontoNonC2C6C7 > 0) {
+        scontoApplicatoNonC2 = costoNonC2 * (scontoNonC2C6C7 / 100);
+        costoNonC2 -= scontoApplicatoNonC2;
+      }
+      
+      dettaglio += `2 Immobili non C2/C6/C7: ${immobiliNonC2C6C7} × €${prezzi.nonC2c6c7.toFixed(2)} = €${(immobiliNonC2C6C7 * prezzi.nonC2c6c7).toFixed(2)}\n`;
+      if (scontoApplicatoNonC2 > 0) {
+        dettaglio += `Sconto categoria (${scontoNonC2C6C7}%): -€${scontoApplicatoNonC2.toFixed(2)}\n`;
+      }
+      dettaglio += `Subtotale non C2/C6/C7: €${costoNonC2.toFixed(2)}\n\n`;
+      totale += costoNonC2;
+    }
+    
+    // Calcolo per categoria Dal 3° immobile
+    if (immobiliDal3 > 0) {
+      let costoDal3 = immobiliDal3 * prezzi.dal3;
+      let scontoApplicatoDal3 = 0;
+      
+      if (immobiliDal3 >= sogliaDal3 && scontoDal3 > 0) {
+        scontoApplicatoDal3 = costoDal3 * (scontoDal3 / 100);
+        costoDal3 -= scontoApplicatoDal3;
+      }
+      
+      dettaglio += `Dal 3° immobile non C2/C6/C7: ${immobiliDal3} × €${prezzi.dal3.toFixed(2)} = €${(immobiliDal3 * prezzi.dal3).toFixed(2)}\n`;
+      if (scontoApplicatoDal3 > 0) {
+        dettaglio += `Sconto categoria (${scontoDal3}%): -€${scontoApplicatoDal3.toFixed(2)}\n`;
+      }
+      dettaglio += `Subtotale dal 3°: €${costoDal3.toFixed(2)}\n\n`;
+      totale += costoDal3;
+    }
+    
+    // Sconto complessivo
+    const totaleImmobili = immobiliC2C6C7 + immobiliNonC2C6C7 + immobiliDal3;
+    let scontoComplessivoApplicato = 0;
+    
+    if (totaleImmobili >= sogliaComplessiva && scontoComplessivo > 0) {
+      scontoComplessivoApplicato = totale * (scontoComplessivo / 100);
+      totale -= scontoComplessivoApplicato;
+    }
+    
+    if (scontoComplessivoApplicato > 0) {
+      dettaglio += `Sconto complessivo (${scontoComplessivo}%): -€${scontoComplessivoApplicato.toFixed(2)}\n`;
+    }
+    
+    dettaglio += `\nTotale imponibile: €${totale.toFixed(2)}\n`;
+    
+    let importoCalcolato = totale;
+    if (tipoCalcolo === 'acconto') {
+      importoCalcolato = totale / 2;
+      dettaglio += `Acconto (50%): €${importoCalcolato.toFixed(2)}\n`;
+    }
+    
+    // Minimo garantito
+    const minimoGarantito = 23.00;
+    if (importoCalcolato < minimoGarantito) {
+      dettaglio += `Minimo garantito: €${minimoGarantito.toFixed(2)}\n`;
+      importoCalcolato = minimoGarantito;
+    }
+    
+    dettaglio += `\nImporto finale: €${importoCalcolato.toFixed(2)}`;
+    dettaglio += `\nVoce contabile: ${voceContabile}`;
+    
+    setDettaglioCalcolo(dettaglio);
+    setTotaleImponibile(totale);
+    setImportoFinale(importoCalcolato);
+  };
+
+  const generaPDF = () => {
+    const contenutoPDF = `
+STUDIO BASSO DE BORTOLI ZAMBELLI
+Viale Palladio 42, 37138 Verona
+Tel. 04557694 - Email: fiscale@bdzassociati.it
+
+CALCOLATORE COMPETENZE IMU 2025
+
+Cliente: ${cliente || 'Non specificato'}
+Data: ${new Date().toLocaleDateString('it-IT')}
+Tipo calcolo: ${tipoCalcolo.charAt(0).toUpperCase() + tipoCalcolo.slice(1)}
+
+DETTAGLIO CALCOLO:
+${dettaglioCalcolo}
+
+Totale competenze ${tipoCalcolo}: €${importoFinale.toFixed(2)}
+    `;
+    
+    // Crea un elemento temporaneo per il download
+    const elemento = document.createElement('a');
+    const file = new Blob([contenutoPDF], { type: 'text/plain' });
+    elemento.href = URL.createObjectURL(file);
+    elemento.download = `competenze_imu_${cliente || 'cliente'}_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(elemento);
+    elemento.click();
+    document.body.removeChild(elemento);
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #faf8f7 0%, #f5f1f0 100%)',
+      padding: '20px',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+    }}>
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        background: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: '20px',
+        padding: '30px',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+      }}>
+        {/* Header */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '30px',
+          padding: '20px',
+          background: 'linear-gradient(135deg, #f9f5f5 0%, #f0e8e8 100%)',
+          borderRadius: '15px',
+          color: '#6b4c57',
+          border: '1px solid #e8ddd8'
+        }}>
+          {/* Logo SVG */}
+          <div style={{ marginBottom: '15px' }}>
+            <svg width="120" height="60" viewBox="0 0 120 60" style={{ margin: '0 auto' }}>
+              {/* BDZ Letters */}
+              <text x="60" y="25" textAnchor="middle" style={{
+                fontSize: '24px',
+                fontWeight: 'bold',
+                fill: '#8b4a5c',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}>
+                BDZ
+              </text>
+              {/* STUDIO ASSOCIATO */}
+              <text x="60" y="40" textAnchor="middle" style={{
+                fontSize: '8px',
+                fill: '#6b4c57',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                letterSpacing: '1px'
+              }}>
+                STUDIO ASSOCIATO
+              </text>
+              {/* BASSO DE BORTOLI ZAMBELLI */}
+              <text x="60" y="52" textAnchor="middle" style={{
+                fontSize: '6px',
+                fill: '#8b6b73',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                letterSpacing: '0.5px'
+              }}>
+                BASSO DE BORTOLI ZAMBELLI
+              </text>
+            </svg>
+          </div>
+          
+          <h1 style={{ margin: '0 0 10px 0', fontSize: '28px', fontWeight: '600' }}>
+            Calcolatore Competenze Studio per IMU
+          </h1>
+          <div style={{ fontSize: '14px', opacity: '0.8', color: '#8b6b73' }}>
+            Studio Basso De Bortoli Zambelli<br />
+            Viale Palladio 42, 37138 Verona<br />
+            Tel. 04557694 - Email: fiscale@bdzassociati.it
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+          {/* Pannello sinistro - Input */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Dati cliente */}
+            <div style={{
+              background: '#ffffff',
+              padding: '20px',
+              borderRadius: '15px',
+              border: '1px solid #e1e5e9',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+            }}>
+              <h3 style={{ margin: '0 0 15px 0', color: '#6b4c57', fontSize: '18px' }}>Dati Cliente</h3>
+              
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }}>
+                Nome Cliente:
+              </label>
+              <input
+                type="text"
+                value={cliente}
+                onChange={(e) => setCliente(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  marginBottom: '15px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Inserisci nome cliente"
+              />
+              
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#5a6c7d' }}>
+                Tipo Calcolo:
+              </label>
+              <select
+                value={tipoCalcolo}
+                onChange={(e) => setTipoCalcolo(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  marginBottom: '15px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="acconto">Acconto</option>
+                <option value="saldo">Saldo</option>
+              </select>
+              
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#5a6c7d' }}>
+                Voce Contabile:
+              </label>
+              <input
+                type="text"
+                value={voceContabile}
+                onChange={(e) => setVoceContabile(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="00010"
+              />
+            </div>
+
+            {/* Immobili */}
+            <div style={{
+              background: '#ffffff',
+              padding: '20px',
+              borderRadius: '15px',
+              border: '1px solid #e1e5e9',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+            }}>
+              <h3 style={{ margin: '0 0 15px 0', color: '#6b4c57', fontSize: '18px' }}>Numero Immobili per Categoria</h3>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }}>
+                  Ulteriori immobili C2/C6/C7 e terreni (€17,00):
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={immobiliC2C6C7}
+                  onChange={(e) => setImmobiliC2C6C7(parseInt(e.target.value) || 0)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '10px',
+                    fontSize: '16px',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }}>
+                  2 Immobili non C2/C6/C7 (€28,00):
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={immobiliNonC2C6C7}
+                  onChange={(e) => setImmobiliNonC2C6C7(parseInt(e.target.value) || 0)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '10px',
+                    fontSize: '16px',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#8b6b73' }}>
+                  Dal 3° immobile non C2/C6/C7 (€17,00):
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={immobiliDal3}
+                  onChange={(e) => setImmobiliDal3(parseInt(e.target.value) || 0)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '10px',
+                    fontSize: '16px',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Configurazione Sconti */}
+            <div style={{
+              background: '#ffffff',
+              padding: '20px',
+              borderRadius: '15px',
+              border: '1px solid #e1e5e9',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+            }}>
+              <h3 style={{ margin: '0 0 15px 0', color: '#2c3e50', fontSize: '18px' }}>Configurazione Sconti</h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#5a6c7d' }}>
+                    Soglia C2/C6/C7:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={sogliaC2C6C7}
+                    onChange={(e) => setSogliaC2C6C7(parseInt(e.target.value) || 100)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#5a6c7d' }}>
+                    Sconto % C2/C6/C7:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={scontoC2C6C7}
+                    onChange={(e) => setScontoC2C6C7(parseInt(e.target.value) || 0)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#5a6c7d' }}>
+                    Soglia Non C2/C6/C7:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={sogliaNonC2C6C7}
+                    onChange={(e) => setSogliaNonC2C6C7(parseInt(e.target.value) || 100)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#5a6c7d' }}>
+                    Sconto % Non C2/C6/C7:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={scontoNonC2C6C7}
+                    onChange={(e) => setScontoNonC2C6C7(parseInt(e.target.value) || 0)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#5a6c7d' }}>
+                    Soglia Dal 3°:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={sogliaDal3}
+                    onChange={(e) => setSogliaDal3(parseInt(e.target.value) || 100)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#5a6c7d' }}>
+                    Sconto % Dal 3°:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={scontoDal3}
+                    onChange={(e) => setScontoDal3(parseInt(e.target.value) || 0)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#5a6c7d' }}>
+                    Soglia Complessiva:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={sogliaComplessiva}
+                    onChange={(e) => setSogliaComplessiva(parseInt(e.target.value) || 100)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#5a6c7d' }}>
+                    Sconto % Complessivo:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={scontoComplessivo}
+                    onChange={(e) => setScontoComplessivo(parseInt(e.target.value) || 0)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pannello destro - Risultati */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Riepilogo Calcolo */}
+            <div style={{
+              background: '#ffffff',
+              padding: '20px',
+              borderRadius: '15px',
+              border: '1px solid #e1e5e9',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+            }}>
+              <h3 style={{ margin: '0 0 15px 0', color: '#2c3e50', fontSize: '18px' }}>Dettaglio Calcolo</h3>
+              <pre style={{
+                background: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '10px',
+                fontSize: '13px',
+                lineHeight: '1.4',
+                margin: '0',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'Monaco, Consolas, "Lucida Console", monospace',
+                color: '#2c3e50',
+                border: '1px solid #e9ecef'
+              }}>
+                {dettaglioCalcolo || 'Inserisci i dati per vedere il calcolo...'}
+              </pre>
+            </div>
+
+            {/* Risultato Finale */}
+            <div style={{
+              background: 'linear-gradient(135deg, #f7f3f3 0%, #ede5e1 100%)',
+              padding: '25px',
+              borderRadius: '15px',
+              color: '#6b4c57',
+              textAlign: 'center',
+              border: '1px solid #e0d4d0'
+            }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '20px', fontWeight: '600' }}>
+                Competenze {tipoCalcolo.charAt(0).toUpperCase() + tipoCalcolo.slice(1)} IMU
+              </h3>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '10px' }}>
+                €{importoFinale.toFixed(2)}
+              </div>
+              <div style={{ fontSize: '14px', opacity: '0.8', color: '#8b6b73' }}>
+                Voce Contabile: {voceContabile}
+              </div>
+            </div>
+
+            {/* Pulsante Stampa */}
+            <button
+              onClick={generaPDF}
+              style={{
+                background: 'linear-gradient(135deg, #f4eeee 0%, #ebe1df 100%)',
+                color: '#6b4c57',
+                border: '1px solid #d6c8c4',
+                padding: '15px 25px',
+                borderRadius: '12px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                boxShadow: '0 4px 15px rgba(214, 200, 196, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 8px 25px rgba(214, 200, 196, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(214, 200, 196, 0.3)';
+              }}
+            >
+              <Download size={20} />
+              Genera Report PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default IMUCalculator;

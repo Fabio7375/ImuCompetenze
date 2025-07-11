@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calcolatore Competenze IMU – BDZ Associati</title>
   <style>
-    /* RESET & FONT */
+    /* Stili CSS invariati... */
     * { box-sizing:border-box; margin:0; padding:0 }
     body {
       font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -37,13 +37,11 @@
       border:1px solid #d1d5db; border-radius:6px;
       font-size:14px; margin-bottom:12px;
     }
-    /* griglia interna per campi 2-colonne */
     .form-grid {
       display:grid;
       grid-template-columns: repeat(2, minmax(200px, 1fr));
       column-gap:20px; row-gap:12px;
     }
-    /* riquadro soglie+sconti */
     .card.sconti {
       border:2px dashed #8b6b73;
       background: #f9f5f5;
@@ -79,7 +77,7 @@
 
     <!-- SINISTRA: INPUT -->
     <div class="card">
-      <h2>Dati Cliente & Prezzi</h2>
+      <h2>Dati Cliente & Prezzi Base</h2>
       <div class="form-grid">
         <div>
           <label>Cliente</label>
@@ -88,7 +86,6 @@
         <div>
           <label>Tipo Calcolo</label>
           <select id="tipoCalcolo">
-            <!-- MODIFICA 1: Testo delle opzioni -->
             <option value="acconto">1° o 2° acconto semestrale (50%)</option>
             <option value="saldo">Saldo (Totale annuo 100%)</option>
           </select>
@@ -97,78 +94,91 @@
           <label>Voce Contabile</label>
           <input type="text" id="voceContabile" value="00010"/>
         </div>
+         <!-- MODIFICA: Spostati i prezzi base qui -->
         <div>
-          <label>Prezzo Non C2/C6/C7 (€)</label>
+          <label id="labelPriceNonC2">Prezzo Base ABITATIVI (€)</label>
           <input type="number" id="priceNonC2" step="0.01" value="28.00"/>
         </div>
         <div>
-          <label>Prezzo <strong>C2/C6/C7</strong> (€)</label>
+          <label id="labelPriceC2">Prezzo Base C2/C6/C7 (€)</label>
           <input type="number" id="priceC2" step="0.01" value="17.00"/>
         </div>
         <div>
-          <label>Prezzo Categoria 3 (€)</label>
+          <label id="labelPriceCat3">Prezzo Base Categoria Pers. (€)</label>
           <input type="number" id="priceDal3" step="0.01" value="17.00"/>
         </div>
       </div>
 
-      <h2>Numero Immobili</h2>
+      <h2>Numero Immobili e Categoria Personalizzata</h2>
+       <!-- MODIFICA: Aggiunto campo per nome categoria personalizzata -->
+      <div class="form-grid" style="grid-template-columns: 1fr;">
+         <div>
+            <label for="nomeCat3">Nome Categoria Personalizzata (es. Terreni, Cat. D, ecc.)</label>
+            <input type="text" id="nomeCat3" placeholder="Es: Terreni edificabili">
+        </div>
+      </div>
       <div class="form-grid">
         <div>
-          <label>Non C2/C6/C7 (A2, A3…)</label>
+          <!-- MODIFICA: Etichetta cambiata -->
+          <label id="labelImmNonC2">N° ABITATIVI (non C2 C6)</label>
           <input type="number" id="immNonC2" min="0" value="0"/>
         </div>
         <div>
-          <label><strong>C2/C6/C7 e terreni (A1…)</strong></label>
+          <label id="labelImmC2">N° C2/C6/C7 e terreni</label>
           <input type="number" id="immC2" min="0" value="0"/>
         </div>
         <div>
-          <label>Categoria 3</label>
+           <!-- MODIFICA: Etichetta dinamica -->
+          <label id="labelImmCat3">N° Categoria Personalizzata</label>
           <input type="number" id="immDal3" min="0" value="0"/>
         </div>
       </div>
 
-      <!-- Riquadro soglie+sconti -->
+      <!-- MODIFICA: Riquadro soglie e prezzi eccedenze -->
       <div class="card sconti">
-        <!-- MODIFICA 2: Titolo della card -->
-        <h2>Configurazione Sconti (%) eccedenze sopra soglia</h2>
+        <h2>Configurazione Soglie e Prezzi Eccedenze</h2>
         <div class="form-grid">
           <div>
-            <label>Soglia Non C2/C6/C7</label>
-            <input type="number" id="sogNonC2" min="1" value="100"/>
+            <label id="labelSogNonC2">Soglia ABITATIVI</label>
+            <input type="number" id="sogNonC2" min="0" value="100"/>
           </div>
           <div>
-            <label>Sconto % Non C2/C6/C7</label>
-            <input type="number" id="scoNonC2" min="0" max="100" value="0"/>
+            <!-- MODIFICA: Da sconto a prezzo eccedenza -->
+            <label id="labelPriceOverNonC2">Prezzo Eccedenze ABITATIVI (€)</label>
+            <input type="number" id="priceOverNonC2" step="0.01" value="10.00"/>
           </div>
           <div>
-            <label>Soglia <strong>C2/C6/C7</strong></label>
-            <input type="number" id="sogC2" min="1" value="100"/>
+            <label id="labelSogC2">Soglia C2/C6/C7</label>
+            <input type="number" id="sogC2" min="0" value="100"/>
           </div>
           <div>
-            <label>Sconto % <strong>C2/C6/C7</strong></label>
-            <input type="number" id="scoC2" min="0" max="100" value="0"/>
+             <!-- MODIFICA: Da sconto a prezzo eccedenza -->
+            <label id="labelPriceOverC2">Prezzo Eccedenze C2/C6/C7 (€)</label>
+            <input type="number" id="priceOverC2" step="0.01" value="8.00"/>
           </div>
           <div>
-            <label>Soglia Categoria 3</label>
-            <input type="number" id="sogDal3" min="1" value="100"/>
+             <!-- MODIFICA: Etichetta dinamica -->
+            <label id="labelSogCat3">Soglia Categoria Personalizzata</label>
+            <input type="number" id="sogDal3" min="0" value="100"/>
           </div>
           <div>
-            <label>Sconto % Categoria 3</label>
-            <input type="number" id="scoDal3" min="0" max="100" value="0"/>
+            <!-- MODIFICA: Da sconto a prezzo eccedenza -->
+            <label id="labelPriceOverCat3">Prezzo Eccedenze Categoria Pers. (€)</label>
+            <input type="number" id="priceOverDal3" step="0.01" value="8.00"/>
           </div>
           <div>
-            <label>Soglia Complessiva</label>
+            <label>Soglia Complessiva Immobili</label>
             <input type="number" id="sogComp" min="1" value="100"/>
           </div>
           <div>
-            <label>Sconto % Complessivo</label>
+            <label>Sconto % su Totale Complessivo</label>
             <input type="number" id="scoComp" min="0" max="100" value="0"/>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- DESTRA: RISULTATI -->
+    <!-- DESTRA: RISULTATI (invariato) -->
     <div class="card" style="overflow-y:auto; max-height:calc(100vh - 60px);">
       <h2>Dettaglio Calcolo</h2>
       <pre id="dettaglio">Inserisci i dati per vedere il calcolo…</pre>
@@ -181,91 +191,135 @@
 
       <button id="btnScarica">Scarica Report Word (.doc)</button>
     </div>
-
   </div>
 
   <script>
+    // MODIFICA: Aggiornato l'elenco degli ID degli elementi
     const f = {};
-    ['cliente','tipoCalcolo','voceContabile',
-     'priceNonC2','priceC2','priceDal3',
-     'immNonC2','immC2','immDal3',
-     'sogNonC2','scoNonC2','sogC2','scoC2','sogDal3','scoDal3','sogComp','scoComp',
-     'dettaglio','importo','titoloRisultato','vc','btnScarica']
-      .forEach(id => f[id] = document.getElementById(id));
+    const ids = [
+        'cliente', 'tipoCalcolo', 'voceContabile',
+        'priceNonC2', 'priceC2', 'priceDal3',
+        'immNonC2', 'immC2', 'immDal3',
+        'nomeCat3', // Aggiunto
+        'sogNonC2', 'priceOverNonC2', // Modificato
+        'sogC2', 'priceOverC2',       // Modificato
+        'sogDal3', 'priceOverDal3',   // Modificato
+        'sogComp', 'scoComp',
+        'dettaglio', 'importo', 'titoloRisultato', 'vc', 'btnScarica',
+        // ID delle etichette per aggiornamento dinamico
+        'labelImmNonC2', 'labelPriceNonC2', 'labelSogNonC2', 'labelPriceOverNonC2',
+        'labelImmC2', 'labelPriceC2', 'labelSogC2', 'labelPriceOverC2',
+        'labelImmCat3', 'labelPriceCat3', 'labelSogCat3', 'labelPriceOverCat3'
+    ];
+    ids.forEach(id => f[id] = document.getElementById(id));
 
     const minimoGarantito = 23.00;
 
+    // MODIFICA: Funzione per aggiornare le etichette della categoria personalizzata
+    function aggiornaEtichette() {
+        const nomeCat = f.nomeCat3.value.trim();
+        const nomeDefault = "Categoria Personalizzata";
+        const nomeFinale = nomeCat || nomeDefault;
+
+        // Aggiorna tutte le etichette relative alla terza categoria
+        f.labelImmCat3.textContent = `N° ${nomeFinale}`;
+        f.labelPriceCat3.textContent = `Prezzo Base ${nomeFinale} (€)`;
+        f.labelSogCat3.textContent = `Soglia ${nomeFinale}`;
+        f.labelPriceOverCat3.textContent = `Prezzo Eccedenze ${nomeFinale} (€)`;
+        
+        calcola(); // Ricalcola tutto ogni volta che il nome cambia
+    }
+
+
     function calcola() {
-      // prezzi dinamici
-      const prezzi = {
+      // prezzi base e prezzi eccedenze
+      const prezziBase = {
         nonC2: parseFloat(f.priceNonC2.value) || 0,
         c2:    parseFloat(f.priceC2.value)    || 0,
         dal3:  parseFloat(f.priceDal3.value)  || 0
       };
-      const n     = (id=> +f[id].value||0);
-      const n0    = n('immNonC2'), n1 = n('immC2'), n2 = n('immDal3');
-      const s     = (id=> +f[id].value||0);
+      const prezziOver = {
+        nonC2: parseFloat(f.priceOverNonC2.value) || 0,
+        c2:    parseFloat(f.priceOverC2.value)    || 0,
+        dal3:  parseFloat(f.priceOverDal3.value)  || 0
+      };
+
+      const n = (id => +f[id].value || 0);
+      const n0 = n('immNonC2'), n1 = n('immC2'), n2 = n('immDal3');
+      const s = (id => +f[id].value || 0);
       let dettaglioTxt = '', totale = 0;
 
-      // calcolo soglia/eccedenza
-      function calc(count, prezzo, soglia, sconto, label) {
-        if (count<=0) return 0;
-        const full = Math.min(count,soglia), over = count-full;
-        const costF = full*prezzo, costO = over*prezzo;
-        const discO = over>0? costO*(sconto/100):0;
-        const sub = costF + (costO-discO);
-        dettaglioTxt += `${label}: ${count}×€${prezzo.toFixed(2)} = €${(count*prezzo).toFixed(2)}\n`;
-        dettaglioTxt += `  Soglia (${soglia}): ${full}×€${prezzo.toFixed(2)} = €${costF.toFixed(2)}\n`;
-        if (over>0) {
-          dettaglioTxt += `  Eccedenza: ${over}×€${prezzo.toFixed(2)} = €${costO.toFixed(2)}\n`;
-          dettaglioTxt += `  Sconto ${sconto}% su eccedenza: -€${discO.toFixed(2)}\n`;
+      // MODIFICA: Logica di calcolo aggiornata
+      function calc(count, prezzoBase, soglia, prezzoEccedenza, label) {
+        if (count <= 0) return 0;
+        
+        const inSoglia = Math.min(count, soglia);
+        const eccedenza = Math.max(0, count - soglia);
+
+        const costoInSoglia = inSoglia * prezzoBase;
+        const costoEccedenza = eccedenza * prezzoEccedenza;
+        
+        const subTotale = costoInSoglia + costoEccedenza;
+        
+        dettaglioTxt += `${label}: ${count} immobili\n`;
+        dettaglioTxt += `  Entro soglia (${inSoglia}): ${inSoglia} × €${prezzoBase.toFixed(2)} = €${costoInSoglia.toFixed(2)}\n`;
+        if (eccedenza > 0) {
+          dettaglioTxt += `  Eccedenza (${eccedenza}): ${eccedenza} × €${prezzoEccedenza.toFixed(2)} = €${costoEccedenza.toFixed(2)}\n`;
         }
-        dettaglioTxt += `  Subtotale: €${sub.toFixed(2)}\n\n`;
-        return sub;
+        dettaglioTxt += `  Subtotale: €${subTotale.toFixed(2)}\n\n`;
+        return subTotale;
       }
+      
+      const nomeCat3 = f.nomeCat3.value.trim() || "Categoria Personalizzata";
 
-      totale += calc(n0, prezzi.nonC2, s('sogNonC2'), s('scoNonC2'), 'Non C2/C6/C7');
-      totale += calc(n1, prezzi.c2,    s('sogC2'),    s('scoC2'),    'C2/C6/C7 e terreni');
-      totale += calc(n2, prezzi.dal3,  s('sogDal3'),  s('scoDal3'),  'Categoria 3');
+      totale += calc(n0, prezziBase.nonC2, s('sogNonC2'), prezziOver.nonC2, 'ABITATIVI (non C2 C6)');
+      totale += calc(n1, prezziBase.c2,    s('sogC2'),    prezziOver.c2,    'C2/C6/C7 e terreni');
+      totale += calc(n2, prezziBase.dal3,  s('sogDal3'),  prezziOver.dal3,  nomeCat3);
 
-      // sconto complessivo
-      const totI = n0+n1+n2, scC = s('scoComp');
-      if (totI>=s('sogComp') && scC>0) {
-        const d = totale*(scC/100);
+      // Sconto complessivo (logica invariata)
+      const totI = n0 + n1 + n2, scC = s('scoComp');
+      if (totI >= s('sogComp') && scC > 0) {
+        const d = totale * (scC / 100);
         totale -= d;
-        dettaglioTxt += `Sconto complessivo ${scC}%: -€${d.toFixed(2)}\n\n`;
+        dettaglioTxt += `Sconto complessivo ${scC}% su €${(totale+d).toFixed(2)}: -€${d.toFixed(2)}\n\n`;
       }
 
       dettaglioTxt += `Totale imponibile: €${totale.toFixed(2)}\n`;
-      let imp = f.tipoCalcolo.value==='acconto'? totale/2 : totale;
-      dettaglioTxt += f.tipoCalcolo.value==='acconto'
+      let imp = f.tipoCalcolo.value === 'acconto' ? totale / 2 : totale;
+      dettaglioTxt += f.tipoCalcolo.value === 'acconto'
         ? `Acconto (50%): €${imp.toFixed(2)}\n`
         : `Importo pieno: €${imp.toFixed(2)}\n`;
-      if (imp<minimoGarantito) {
-        dettaglioTxt += `Minimo garantito: €${minimoGarantito.toFixed(2)}\n`;
+      if (imp < minimoGarantito && imp > 0) {
+        dettaglioTxt += `Applicato minimo garantito: €${minimoGarantito.toFixed(2)}\n`;
         imp = minimoGarantito;
       }
 
-      f.dettaglio.textContent    = dettaglioTxt;
-      f.importo.textContent      = `€${imp.toFixed(2)}`;
+      f.dettaglio.textContent = dettaglioTxt;
+      f.importo.textContent = `€${imp.toFixed(2)}`;
       
-      // MIGLIORAMENTO: Usa il testo completo dal menu a tendina per il titolo
       const selectedOptionText = f.tipoCalcolo.options[f.tipoCalcolo.selectedIndex].text;
       f.titoloRisultato.textContent = `Competenze ${selectedOptionText}`;
-      f.vc.textContent           = f.voceContabile.value;
+      f.vc.textContent = f.voceContabile.value;
     }
 
     // listeners
-    Object.values(f).forEach(el=>{
-      if (el.tagName==='INPUT' || el.tagName==='SELECT') el.addEventListener('input',calcola)
+    Object.values(f).forEach(el => {
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'SELECT')) {
+          // L'evento per l'input del nome categoria è gestito a parte
+          if (el.id !== 'nomeCat3') {
+              el.addEventListener('input', calcola);
+          }
+      }
     });
 
-    // MODIFICA 3: Funzione di download per Word (.doc)
+    // MODIFICA: Listener specifico per il campo nome categoria
+    f.nomeCat3.addEventListener('input', aggiornaEtichette);
+
+    // Funzione download (invariata)
     document.getElementById('btnScarica').addEventListener('click',()=>{
       const selectedOptionText = f.tipoCalcolo.options[f.tipoCalcolo.selectedIndex].text;
       const clienteNome = f.cliente.value || 'N/D';
 
-      // Crea un contenuto HTML per il file Word
       const htmlContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'><title>Report Competenze IMU</title></head>
@@ -290,14 +344,15 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Report_IMU_${clienteNome.replace(/ /g, '_')}.doc`; // Salva come .doc
+      a.download = `Report_IMU_${clienteNome.replace(/ /g, '_')}.doc`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     });
 
-    // calcolo iniziale
-    calcola();
+    // calcolo iniziale e setup etichette
+    aggiornaEtichette();
+
   </script>
 </body>
 </html>

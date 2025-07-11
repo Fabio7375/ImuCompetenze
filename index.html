@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calcolatore Competenze IMU – BDZ Associati</title>
   <style>
-    /* Stili CSS invariati... */
+    /* Stili CSS */
     * { box-sizing:border-box; margin:0; padding:0 }
     body {
       font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -32,10 +32,15 @@
       display:block; margin-bottom:5px;
       font-size:14px; color:#8b6b73;
     }
-    input[type="text"], input[type="number"], select {
+    /* MODIFICA: Aggiunto textarea allo stile */
+    input[type="text"], input[type="number"], select, textarea {
       width:100%; padding:8px;
       border:1px solid #d1d5db; border-radius:6px;
       font-size:14px; margin-bottom:12px;
+    }
+    textarea {
+        font-family: inherit;
+        resize: vertical;
     }
     .form-grid {
       display:grid;
@@ -94,7 +99,6 @@
           <label>Voce Contabile</label>
           <input type="text" id="voceContabile" value="00010"/>
         </div>
-         <!-- MODIFICA: Spostati i prezzi base qui -->
         <div>
           <label id="labelPriceNonC2">Prezzo Base ABITATIVI (€)</label>
           <input type="number" id="priceNonC2" step="0.01" value="28.00"/>
@@ -110,7 +114,6 @@
       </div>
 
       <h2>Numero Immobili e Categoria Personalizzata</h2>
-       <!-- MODIFICA: Aggiunto campo per nome categoria personalizzata -->
       <div class="form-grid" style="grid-template-columns: 1fr;">
          <div>
             <label for="nomeCat3">Nome Categoria Personalizzata (es. Terreni, Cat. D, ecc.)</label>
@@ -119,7 +122,6 @@
       </div>
       <div class="form-grid">
         <div>
-          <!-- MODIFICA: Etichetta cambiata -->
           <label id="labelImmNonC2">N° ABITATIVI (non C2 C6)</label>
           <input type="number" id="immNonC2" min="0" value="0"/>
         </div>
@@ -128,13 +130,11 @@
           <input type="number" id="immC2" min="0" value="0"/>
         </div>
         <div>
-           <!-- MODIFICA: Etichetta dinamica -->
           <label id="labelImmCat3">N° Categoria Personalizzata</label>
           <input type="number" id="immDal3" min="0" value="0"/>
         </div>
       </div>
-
-      <!-- MODIFICA: Riquadro soglie e prezzi eccedenze -->
+      
       <div class="card sconti">
         <h2>Configurazione Soglie e Prezzi Eccedenze</h2>
         <div class="form-grid">
@@ -143,7 +143,6 @@
             <input type="number" id="sogNonC2" min="0" value="100"/>
           </div>
           <div>
-            <!-- MODIFICA: Da sconto a prezzo eccedenza -->
             <label id="labelPriceOverNonC2">Prezzo Eccedenze ABITATIVI (€)</label>
             <input type="number" id="priceOverNonC2" step="0.01" value="10.00"/>
           </div>
@@ -152,24 +151,21 @@
             <input type="number" id="sogC2" min="0" value="100"/>
           </div>
           <div>
-             <!-- MODIFICA: Da sconto a prezzo eccedenza -->
             <label id="labelPriceOverC2">Prezzo Eccedenze C2/C6/C7 (€)</label>
             <input type="number" id="priceOverC2" step="0.01" value="8.00"/>
           </div>
           <div>
-             <!-- MODIFICA: Etichetta dinamica -->
             <label id="labelSogCat3">Soglia Categoria Personalizzata</label>
             <input type="number" id="sogDal3" min="0" value="100"/>
           </div>
           <div>
-            <!-- MODIFICA: Da sconto a prezzo eccedenza -->
             <label id="labelPriceOverCat3">Prezzo Eccedenze Categoria Pers. (€)</label>
             <input type="number" id="priceOverDal3" step="0.01" value="8.00"/>
           </div>
-          <div>
-            <label>Soglia Complessiva Immobili</label>
-            <input type="number" id="sogComp" min="1" value="100"/>
-          </div>
+        </div>
+        <!-- MODIFICA: Rimossa la soglia complessiva e semplificata la sezione -->
+        <h2 style="margin-top: 20px;">Sconto Finale</h2>
+        <div class="form-grid" style="grid-template-columns: 1fr;">
           <div>
             <label>Sconto % su Totale Complessivo</label>
             <input type="number" id="scoComp" min="0" max="100" value="0"/>
@@ -178,7 +174,7 @@
       </div>
     </div>
 
-    <!-- DESTRA: RISULTATI (invariato) -->
+    <!-- DESTRA: RISULTATI -->
     <div class="card" style="overflow-y:auto; max-height:calc(100vh - 60px);">
       <h2>Dettaglio Calcolo</h2>
       <pre id="dettaglio">Inserisci i dati per vedere il calcolo…</pre>
@@ -190,23 +186,31 @@
       </div>
 
       <button id="btnScarica">Scarica Report Word (.doc)</button>
+      
+      <!-- MODIFICA: Aggiunta sezione NOTE -->
+      <div style="margin-top: 20px;">
+        <label for="note">Note Aggiuntive (verranno incluse nel report)</label>
+        <textarea id="note" rows="4" placeholder="Inserisci qui eventuali annotazioni..."></textarea>
+      </div>
+
     </div>
+
   </div>
 
   <script>
-    // MODIFICA: Aggiornato l'elenco degli ID degli elementi
+    // MODIFICA: Aggiornato l'elenco degli ID
     const f = {};
     const ids = [
         'cliente', 'tipoCalcolo', 'voceContabile',
         'priceNonC2', 'priceC2', 'priceDal3',
         'immNonC2', 'immC2', 'immDal3',
-        'nomeCat3', // Aggiunto
-        'sogNonC2', 'priceOverNonC2', // Modificato
-        'sogC2', 'priceOverC2',       // Modificato
-        'sogDal3', 'priceOverDal3',   // Modificato
-        'sogComp', 'scoComp',
+        'nomeCat3',
+        'sogNonC2', 'priceOverNonC2',
+        'sogC2', 'priceOverC2',
+        'sogDal3', 'priceOverDal3',
+        'scoComp', // Rimossa 'sogComp'
         'dettaglio', 'importo', 'titoloRisultato', 'vc', 'btnScarica',
-        // ID delle etichette per aggiornamento dinamico
+        'note', // Aggiunto 'note'
         'labelImmNonC2', 'labelPriceNonC2', 'labelSogNonC2', 'labelPriceOverNonC2',
         'labelImmC2', 'labelPriceC2', 'labelSogC2', 'labelPriceOverC2',
         'labelImmCat3', 'labelPriceCat3', 'labelSogCat3', 'labelPriceOverCat3'
@@ -215,24 +219,18 @@
 
     const minimoGarantito = 23.00;
 
-    // MODIFICA: Funzione per aggiornare le etichette della categoria personalizzata
     function aggiornaEtichette() {
         const nomeCat = f.nomeCat3.value.trim();
         const nomeDefault = "Categoria Personalizzata";
         const nomeFinale = nomeCat || nomeDefault;
-
-        // Aggiorna tutte le etichette relative alla terza categoria
         f.labelImmCat3.textContent = `N° ${nomeFinale}`;
         f.labelPriceCat3.textContent = `Prezzo Base ${nomeFinale} (€)`;
         f.labelSogCat3.textContent = `Soglia ${nomeFinale}`;
         f.labelPriceOverCat3.textContent = `Prezzo Eccedenze ${nomeFinale} (€)`;
-        
-        calcola(); // Ricalcola tutto ogni volta che il nome cambia
+        calcola();
     }
 
-
     function calcola() {
-      // prezzi base e prezzi eccedenze
       const prezziBase = {
         nonC2: parseFloat(f.priceNonC2.value) || 0,
         c2:    parseFloat(f.priceC2.value)    || 0,
@@ -245,22 +243,16 @@
       };
 
       const n = (id => +f[id].value || 0);
-      const n0 = n('immNonC2'), n1 = n('immC2'), n2 = n('immDal3');
       const s = (id => +f[id].value || 0);
       let dettaglioTxt = '', totale = 0;
 
-      // MODIFICA: Logica di calcolo aggiornata
       function calc(count, prezzoBase, soglia, prezzoEccedenza, label) {
         if (count <= 0) return 0;
-        
         const inSoglia = Math.min(count, soglia);
         const eccedenza = Math.max(0, count - soglia);
-
         const costoInSoglia = inSoglia * prezzoBase;
         const costoEccedenza = eccedenza * prezzoEccedenza;
-        
         const subTotale = costoInSoglia + costoEccedenza;
-        
         dettaglioTxt += `${label}: ${count} immobili\n`;
         dettaglioTxt += `  Entro soglia (${inSoglia}): ${inSoglia} × €${prezzoBase.toFixed(2)} = €${costoInSoglia.toFixed(2)}\n`;
         if (eccedenza > 0) {
@@ -271,17 +263,17 @@
       }
       
       const nomeCat3 = f.nomeCat3.value.trim() || "Categoria Personalizzata";
+      totale += calc(n('immNonC2'), prezziBase.nonC2, s('sogNonC2'), prezziOver.nonC2, 'ABITATIVI (non C2 C6)');
+      totale += calc(n('immC2'), prezziBase.c2,    s('sogC2'),    prezziOver.c2,    'C2/C6/C7 e terreni');
+      totale += calc(n('immDal3'), prezziBase.dal3,  s('sogDal3'),  prezziOver.dal3,  nomeCat3);
 
-      totale += calc(n0, prezziBase.nonC2, s('sogNonC2'), prezziOver.nonC2, 'ABITATIVI (non C2 C6)');
-      totale += calc(n1, prezziBase.c2,    s('sogC2'),    prezziOver.c2,    'C2/C6/C7 e terreni');
-      totale += calc(n2, prezziBase.dal3,  s('sogDal3'),  prezziOver.dal3,  nomeCat3);
-
-      // Sconto complessivo (logica invariata)
-      const totI = n0 + n1 + n2, scC = s('scoComp');
-      if (totI >= s('sogComp') && scC > 0) {
-        const d = totale * (scC / 100);
-        totale -= d;
-        dettaglioTxt += `Sconto complessivo ${scC}% su €${(totale+d).toFixed(2)}: -€${d.toFixed(2)}\n\n`;
+      // MODIFICA: Semplificata la logica dello sconto complessivo
+      const scC = s('scoComp');
+      if (scC > 0) {
+        const importoPreSconto = totale;
+        const scontoApplicato = importoPreSconto * (scC / 100);
+        totale -= scontoApplicato;
+        dettaglioTxt += `Sconto complessivo ${scC}% su €${importoPreSconto.toFixed(2)}: -€${scontoApplicato.toFixed(2)}\n\n`;
       }
 
       dettaglioTxt += `Totale imponibile: €${totale.toFixed(2)}\n`;
@@ -302,23 +294,28 @@
       f.vc.textContent = f.voceContabile.value;
     }
 
-    // listeners
     Object.values(f).forEach(el => {
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'SELECT')) {
-          // L'evento per l'input del nome categoria è gestito a parte
-          if (el.id !== 'nomeCat3') {
-              el.addEventListener('input', calcola);
-          }
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA')) {
+          const eventType = (el.tagName === 'TEXTAREA') ? 'input' : 'input'; // L'evento è sempre 'input'
+          el.addEventListener(eventType, el.id === 'nomeCat3' ? aggiornaEtichette : calcola);
       }
     });
 
-    // MODIFICA: Listener specifico per il campo nome categoria
-    f.nomeCat3.addEventListener('input', aggiornaEtichette);
-
-    // Funzione download (invariata)
     document.getElementById('btnScarica').addEventListener('click',()=>{
       const selectedOptionText = f.tipoCalcolo.options[f.tipoCalcolo.selectedIndex].text;
       const clienteNome = f.cliente.value || 'N/D';
+      
+      // MODIFICA: Aggiunta delle note al report
+      const noteText = f.note.value.trim();
+      let noteSection = '';
+      if (noteText) {
+          // Usiamo <pre> per mantenere la formattazione (a capo, spazi, etc.)
+          noteSection = `
+              <hr>
+              <h3>NOTE AGGIUNTIVE</h3>
+              <p style="white-space: pre-wrap; font-family: Calibri, sans-serif; font-size: 11pt;">${noteText}</p>
+          `;
+      }
 
       const htmlContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
@@ -334,6 +331,7 @@
           <pre>${f.dettaglio.textContent}</pre>
           <hr>
           <h3>TOTALE FINALE: ${f.importo.textContent}</h3>
+          ${noteSection}
         </body>
         </html>`;
 
@@ -350,7 +348,6 @@
       document.body.removeChild(a);
     });
 
-    // calcolo iniziale e setup etichette
     aggiornaEtichette();
 
   </script>
